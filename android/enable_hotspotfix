@@ -1,0 +1,9 @@
+#!/bin/bash
+cd $HOME/android/lineage/
+source build/envsetup.sh
+repopick -f -P kernel/samsung/smdk4412/ 103605
+repopick -f -P kernel/samsung/smdk4412/ 103606
+repopick -f -P kernel/samsung/smdk4412/ 103607
+repopick -f -P kernel/samsung/smdk4412/ 103608
+repopick -f -P kernel/samsung/smdk4412/ 103609
+exit

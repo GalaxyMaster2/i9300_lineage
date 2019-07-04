@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# User input
+UBERTC_VERS=( )
+read -N1 -p "Build for GCC 4? (Y/N): " GCC4
+echo
+read -N1 -p "Build for GCC 5? (Y/N): " GCC5
+echo
+read -N1 -p "Build for GCC 6? (Y/N): " GCC6
+echo
+read -N1 -p "Build for GCC 7? (Y/N): " GCC7
+echo
+read -N1 -p "Build for GCC 8? (Y/N): " GCC8
+echo
+
+# Create array from input
+if [[ $GCC4 == [yY] ]]; then
+	UBERTC_VERS+=( 4 )
+fi
+if [[ $GCC5 == [yY] ]]; then
+	UBERTC_VERS+=( 5 )
+fi
+if [[ $GCC6 == [yY] ]]; then
+	UBERTC_VERS+=( 6 )
+fi
+if [[ $GCC7 == [yY] ]]; then
+	UBERTC_VERS+=( 7 )
+fi
+if [[ $GCC8 == [yY] ]]; then
+	UBERTC_VERS+=( 8 )
+fi
+
+# Confirmation prompt
+echo "Building with the following GCC versions: ${UBERTC_VERS[@]}"
+read -N1 -p "Continue? (Y/N): " CONTINUE
+echo
+if [[ $CONTINUE != [yY] ]]; then
+	exit
+fi
+
+# Call build_lineage_uber_hwc for each GCC version in the array
+cd $HOME/android
+for i in "${UBERTC_VERS[@]}"; do
+	cd $HOME/android
+	echo "building with GCC $i"
+	./build_lineage_uber_hwc $i
+done
+exit

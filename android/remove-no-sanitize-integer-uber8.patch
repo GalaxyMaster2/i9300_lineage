@@ -1,0 +1,112 @@
+--- lineage/frameworks/av/include/media/Modulo.h	2018-04-02 15:40:57.833110057 +0200
++++ lineage_customstuff/frameworks/av/include/media/Modulo.h	2018-04-02 15:40:09.823035647 +0200
+@@ -98,7 +98,7 @@
+ 
+     // modular operations valid only if size of T <= size of S.
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     Modulo<T> operator +=(const Modulo<S> &other) {
+         static_assert(sizeof(T) <= sizeof(S), "argument size mismatch");
+         mValue += other.unsignedValue();
+@@ -106,7 +106,7 @@
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     Modulo<T> operator -=(const Modulo<S> &other) {
+         static_assert(sizeof(T) <= sizeof(S), "argument size mismatch");
+         mValue -= other.unsignedValue();
+@@ -116,14 +116,14 @@
+     // modular operations resulting in a value valid only at the smaller of the two
+     // Modulo base type sizes, but we only allow equal sizes to avoid confusion.
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     const Modulo<T> operator +(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return Modulo<T>(mValue + other.unsignedValue());
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     const Modulo<T> operator -(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return Modulo<T>(mValue - other.unsignedValue());
+@@ -135,35 +135,35 @@
+     // Caution: These relational and comparison operations are not equivalent to
+     // the base type operations.
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     bool operator >(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return static_cast<signedT>(mValue - other.unsignedValue()) > 0;
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     bool operator >=(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return static_cast<signedT>(mValue - other.unsignedValue()) >= 0;
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     bool operator ==(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return static_cast<signedT>(mValue - other.unsignedValue()) == 0;
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     bool operator <=(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return static_cast<signedT>(mValue - other.unsignedValue()) <= 0;
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     bool operator <(const Modulo<S> &other) const {
+         static_assert(sizeof(T) == sizeof(S), "argument size mismatch");
+         return static_cast<signedT>(mValue - other.unsignedValue()) < 0;
+@@ -173,14 +173,14 @@
+     // modular operations with a non-Modulo type allowed with wrapping
+     // because there should be no confusion as to the meaning.
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     Modulo<T> operator +=(const S &other) {
+         mValue += unsignedT(other);
+         return *this;
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     Modulo<T> operator -=(const S &other) {
+         mValue -= unsignedT(other);
+         return *this;
+@@ -195,14 +195,14 @@
+     // Note: a Modulo type may be promoted by using "differences" off of
+     // a larger sized type, but we do not automate this.
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     const Modulo<T> operator +(const S &other) const {
+         static_assert(sizeof(T) >= sizeof(S), "argument size mismatch");
+         return Modulo<T>(mValue + unsignedT(other));
+     }
+ 
+     template <typename S>
+-    __attribute__((no_sanitize("integer")))
++    //__attribute__((no_sanitize("integer")))
+     const Modulo<T> operator -(const S &other) const {
+         static_assert(sizeof(T) >= sizeof(S), "argument size mismatch");
+         return Modulo<T>(mValue - unsignedT(other));

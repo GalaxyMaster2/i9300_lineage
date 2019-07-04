@@ -1,0 +1,15 @@
+--- lineage/system/core/include/utils/Vector.h	2018-04-01 14:35:00.146422928 +0200
++++ lineage_customstuff/system/core/include/utils/Vector.h	2018-04-01 22:02:56.575583971 +0200
+@@ -247,12 +247,6 @@
+ }
+ 
+ template<class TYPE> inline
+-const Vector<TYPE>& Vector<TYPE>::operator = (const Vector<TYPE>& rhs) const {
+-    VectorImpl::operator = (static_cast<const VectorImpl&>(rhs));
+-    return *this;
+-}
+-
+-template<class TYPE> inline
+ Vector<TYPE>& Vector<TYPE>::operator = (const SortedVector<TYPE>& rhs) {
+     VectorImpl::operator = (static_cast<const VectorImpl&>(rhs));
+     return *this;

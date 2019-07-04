@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# Remove existing default toolchains
+cd $HOME/android/lineage/
+rm -rf prebuilts/gcc/linux-x86/arm/arm-cortex_a9-linux-androideabi-* prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-*
+if [[ $USE_KERNEL_TC == [yY] ]]; then
+	rm -rf prebuilts/gcc/linux-x86/arm/arm-cortex_a9-eabi-* prebuilts/gcc/linux-x86/arm/arm-eabi-*
+fi
+
+# Copy the new toolchains and symlink them in place of the default toolchains. Apply patches to work around build errors.
+if [[ $GCC_VER == 4 ]]; then
+	if [[ $USE_CORTEX_A9 == [yY] ]]; then
+		echo "using gcc 4.9 with cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-linux-androideabi-4.9 prebuilts/gcc/linux-x86/arm/
+		ln -s arm-cortex_a9-linux-androideabi-4.9 prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-eabi-4.9 prebuilts/gcc/linux-x86/arm/
+			ln -s arm-cortex_a9-eabi-4.9 prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+		fi
+	else
+		echo "using gcc 4.9 without cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-linux-androideabi-4.9 prebuilts/gcc/linux-x86/arm/
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-eabi-4.9 prebuilts/gcc/linux-x86/arm/
+			ln -s arm-eabi-4.9 prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+		fi
+	fi
+elif [[ $GCC_VER == 5 ]]; then
+	if [[ $USE_CORTEX_A9 == [yY] ]]; then
+		echo "using gcc 5.x with cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-linux-androideabi-5.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-cortex_a9-linux-androideabi-5.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-eabi-5.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-cortex_a9-eabi-5.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc5.h kernel/samsung/smdk4412/include/linux/
+		fi
+	else
+		echo "using gcc 5.x without cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-linux-androideabi-5.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-linux-androideabi-5.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-eabi-5.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-eabi-5.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc5.h kernel/samsung/smdk4412/include/linux/
+		fi
+	fi
+	patch -p1 -i ../fix_symbols_linaro_49_a9.patch
+elif [[ $GCC_VER == 6 ]]; then
+	if [[ $USE_CORTEX_A9 == [yY] ]]; then
+		echo "using gcc 6.x with cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-linux-androideabi-6.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-cortex_a9-linux-androideabi-6.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-eabi-6.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-cortex_a9-eabi-6.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc6.h kernel/samsung/smdk4412/include/linux/
+		fi
+	else
+		echo "using gcc 6.x without cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-linux-androideabi-6.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-linux-androideabi-6.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-eabi-6.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-eabi-6.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc6.h kernel/samsung/smdk4412/include/linux/
+		fi
+	fi
+	patch -p1 -i ../fix_symbols_linaro_49_a9.patch
+	patch -p1 -i ../disable-strict-aliasing-uber6.patch
+elif [[ $GCC_VER == 7 ]]; then
+	if [[ $USE_CORTEX_A9 == [yY] ]]; then
+		echo "using gcc 7.x with cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-linux-androideabi-7.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-cortex_a9-linux-androideabi-7.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-eabi-7.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-cortex_a9-eabi-7.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc7.h kernel/samsung/smdk4412/include/linux/
+		fi
+	else
+		echo "using gcc 7.x without cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-linux-androideabi-7.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-linux-androideabi-7.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-eabi-7.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-eabi-7.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc7.h kernel/samsung/smdk4412/include/linux/
+		fi
+	fi
+	patch -p1 -i ../fix_symbols_linaro_49_a9.patch
+	patch -p1 -i ../disable-strict-aliasing_implicit-fallthrough-uber7.patch
+	patch -p1 -i ../remove_const_operator_uber7.patch
+elif [[ $GCC_VER == 8 ]]; then
+	if [[ $USE_CORTEX_A9 == [yY] ]]; then
+		echo "using gcc 8.x with cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-linux-androideabi-8.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-cortex_a9-linux-androideabi-8.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-cortex_a9-eabi-8.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-cortex_a9-eabi-8.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc8.h kernel/samsung/smdk4412/include/linux/
+		fi
+	else
+		echo "using gcc 8.x without cortex a9 optimizations"
+		cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-linux-androideabi-8.x prebuilts/gcc/linux-x86/arm/
+		ln -s arm-linux-androideabi-8.x prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+		if [[ $USE_KERNEL_TC == [yY] ]]; then
+			echo "setting up kernel toolchain"
+			cp -r ../lineage_customstuff/custom_toolchains/ubertc/arm-eabi-8.x prebuilts/gcc/linux-x86/arm/
+			ln -s arm-eabi-8.x prebuilts/gcc/linux-x86/arm/arm-eabi-4.8
+			cp ../lineage_customstuff/kernel/samsung/smdk4412/include/linux/compiler-gcc8.h kernel/samsung/smdk4412/include/linux/
+		fi
+	fi
+	patch -p1 -i ../fix_symbols_linaro_49_a9.patch
+	patch -p1 -i ../disable-strict-aliasing_implicit-fallthrough_class-memaccess-uber8.patch
+	patch -p1 -i ../remove-no-sanitize-integer-uber8.patch
+	patch -p1 -i ../remove_const_operator_uber7.patch
+else
+	echo "somehow an invalid GCC_VER got through"
+fi
+exit

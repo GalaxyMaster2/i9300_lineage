@@ -1,0 +1,5 @@
+#!/bin/bash
+cd $HOME/android/lineage/
+cp ../lineage_customstuff/.repo/local_manifests/zlatest_hwc_manifest.xml .repo/local_manifests/
+echo "manifest copied, use 'repo sync' to download sources"
+exit

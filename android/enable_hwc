@@ -1,0 +1,8 @@
+#!/bin/bash
+cd $HOME/android/lineage/
+source build/envsetup.sh
+repopick 166466
+repopick 167211
+repopick 167209
+repopick 167210
+exit

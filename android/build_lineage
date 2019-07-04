@@ -1,0 +1,164 @@
+#!/bin/bash
+
+# Setting to use ccache (compiler cache) with the build. Massively reduces subsequent build times but requires a ccache set up of about 50 GB.
+# Comment out to disable if you don't have ccache set up.
+export USE_CCACHE=1
+
+# Set some important variables
+export LINEAGE_DIR=$HOME/android/lineage
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk
+export BUILD_DATE=$(date +%Y%m%d)
+export LANG=""
+
+# Create builds dir if it doesn't exist yet
+mkdir -p $HOME/android/builds
+
+# Create lineage dir if it doesn't exist yet and cd into it
+mkdir -p $LINEAGE_DIR
+cd $LINEAGE_DIR
+
+# Create virtualenv2 and activate it
+if [ ! -d venv ]; then
+	virtualenv2 venv
+fi
+source venv/bin/activate
+
+# Symlink python2 stuff
+ln -s /usr/lib/python2.7/* $LINEAGE_DIR/venv/lib/python2.7/ &> /dev/null
+
+# Init repo and download manifests
+repo init -u https://github.com/LineageOS/android.git -b cm-14.1
+
+# User input
+read -N1 -p "Use the hwc patches from experimental build? (Y/N): " USE_HWC
+echo
+if [[ $USE_HWC != [yYnN] ]]; then
+	echo "invalid answer, defaulting to no"
+	USE_HWC=n
+fi
+#read -N1 -p "Use linaro toolchain? (Y/N): " USE_LINARO
+#echo
+if [[ $USE_LINARO != [yYnN] ]]; then
+#	echo "invalid answer, defaulting to no"
+	USE_LINARO=n
+fi
+if [[ $USE_LINARO != [yY] ]]; then
+	read -N1 -p "Use UBER toolchain (Y/N): " USE_UBERTC
+	echo
+	if [[ $USE_UBERTC != [yYnN] ]]; then
+		echo "invalid answer, defaulting to no"
+		USE_UBERTC=n
+	fi
+fi
+if [[ $USE_LINARO == [yY] ]] || [[ $USE_UBERTC == [yY] ]]; then
+	read -N1 -p "Use cortex a9 optimizations? (Y/N): " USE_CORTEX_A9
+	echo
+	if [[ $USE_CORTEX_A9 != [yYnN] ]]; then
+		echo "invalid answer, defaulting to no"
+		USE_CORTEX_A9=n
+	fi
+	read -N1 -p "Use custom toolchain for kernel? (Y/N): " USE_KERNEL_TC
+	echo
+	if [[ $USE_KERNEL_TC != [yYnN] ]]; then
+		echo "invalid answer, defaulting to no"
+		USE_KERNEL_TC=n
+	fi
+	read -N1 -p "Which GCC version do you want to use? (4/5/6/7/8)?: " GCC_VER
+	echo
+	if [[ $GCC_VER != [45678] ]]; then
+		echo "invalid answer, defaulting to GCC 4"
+		GCC_VER=4
+	fi
+else
+	USE_CORTEX_A9=n
+	USE_KERNEL_TC=n
+	GCC_VER=4
+fi
+
+# Export vars for use in subscripts
+export USE_CORTEX_A9
+export USE_KERNEL_TC
+export GCC_VER
+
+# Init hwc manifest
+if [[ $USE_HWC == [yY] ]]; then
+	echo "using hwc patches"
+	../init_hwc
+else
+	echo "not using hwc patches"
+	if [ -f .repo/local_manifests/zlatest_hwc_manifest.xml ]; then
+		echo "manifest exists, attempting to remove"
+		rm -f .repo/local_manifests/zlatest_hwc_manifest.xml
+	fi
+fi
+
+# Copy proprietary blob manifest
+echo "copying proprietary blob manifest"
+cp ../lineage_customstuff/.repo/local_manifests/zlatest_proprietary_samsung.xml .repo/local_manifests/
+
+# Clean build dir and remove old custom toolchains
+rm -rf $LINEAGE_DIR/out
+rm -rf $LINEAGE_DIR/prebuilts/gcc/linux-x86/arm/*
+
+# Sync sources and reset git repos
+repo sync -j$(nproc) -c -d --force-sync
+repo forall -c 'git reset --hard ; git clean -fdx'
+
+# Setup custom toolchain
+if [[ $USE_LINARO == [yY] ]]; then
+	echo "setting up linaro toolchain"
+	../linaro_toolchain
+elif [[ $USE_UBERTC == [yY] ]]; then
+	echo "setting up UBER toolchain"
+	../uber_toolchain
+fi
+
+# Initialize build environment
+source build/envsetup.sh
+breakfast i9300
+
+# Cherry-pick commits to enable hwc and hotspotfix
+if [[ $USE_HWC == [yY] ]]; then
+	echo "cherry-picking commits"
+	../enable_hwc
+	../enable_hotspotfix
+fi
+
+# Start the actual build
+export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+croot
+brunch i9300
+
+# Check if build date matches and correct it if not
+if [ ! -f $LINEAGE_DIR/out/target/product/i9300/lineage-14.1-${BUILD_DATE}-UNOFFICIAL-i9300.zip ] && [ -f $LINEAGE_DIR/out/target/product/i9300/lineage-14.1-$(date +%Y%m%d)-UNOFFICIAL-i9300.zip ]; then
+	export BUILD_DATE=$(date +%Y%m%d)
+fi
+
+# Copy finished build to build dir
+cp $LINEAGE_DIR/out/target/product/i9300/lineage-14.1-${BUILD_DATE}-UNOFFICIAL-i9300.zip $LINEAGE_DIR/../builds/
+
+# This monstrosity renames the files appropriately. I would change this into something sane but it works and I can't be bothered.
+if [[ $USE_HWC == [yY] ]] && [[ $USE_LINARO == [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 == [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-experimental-i9300-linaro${GCC_VER}_a9.zip
+elif [[ $USE_HWC == [yY] ]] && [[ $USE_LINARO == [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-experimental-i9300-linaro${GCC_VER}.zip
+elif [[ $USE_HWC == [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC == [yY] ]] && [[ $USE_CORTEX_A9 == [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-experimental-i9300-ubertc${GCC_VER}_a9.zip
+elif [[ $USE_HWC == [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC == [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-experimental-i9300-ubertc${GCC_VER}.zip
+elif [[ $USE_HWC == [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-experimental-i9300.zip
+elif [[ $USE_HWC != [yY] ]] && [[ $USE_LINARO == [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 == [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-i9300-linaro${GCC_VER}_a9.zip
+elif [[ $USE_HWC != [yY] ]] && [[ $USE_LINARO == [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-i9300-linaro${GCC_VER}.zip
+elif [[ $USE_HWC != [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC == [yY] ]] && [[ $USE_CORTEX_A9 == [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-i9300-ubertc${GCC_VER}_a9.zip
+elif [[ $USE_HWC != [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC == [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-i9300-ubertc${GCC_VER}.zip
+elif [[ $USE_HWC != [yY] ]] && [[ $USE_LINARO != [yY] ]] && [[ $USE_UBERTC != [yY] ]] && [[ $USE_CORTEX_A9 != [yY] ]]; then
+	OUT_NAME=lineage-14.1-${BUILD_DATE}-i9300.zip
+fi
+
+mv $LINEAGE_DIR/../builds/lineage-14.1-${BUILD_DATE}-UNOFFICIAL-i9300.zip $LINEAGE_DIR/../builds/$OUT_NAME
+exit

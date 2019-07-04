@@ -1,0 +1,11 @@
+--- lineage/frameworks/base/core/jni/Android.mk	2018-04-01 14:29:50.137022065 +0200
++++ lineage_customstuff/frameworks/base/core/jni/Android.mk	2018-04-01 17:14:39.640773897 +0200
+@@ -278,7 +278,7 @@
+ 
+ # -Wno-unknown-pragmas: necessary for Clang as the GL bindings need to turn
+ #                       off a GCC warning that Clang doesn't know.
+-LOCAL_CFLAGS += -Wall -Werror -Wno-error=deprecated-declarations -Wunused -Wunreachable-code \
++LOCAL_CFLAGS += -Wall -Werror -Wno-error=deprecated-declarations -Wno-error=strict-aliasing -Wunused -Wunreachable-code \
+         -Wno-unknown-pragmas
+ 
+ # -Wno-c++11-extensions: Clang warns about Skia using the C++11 override keyword, but this project
