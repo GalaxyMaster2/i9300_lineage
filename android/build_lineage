@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Setting to use ccache (compiler cache) with the build. Massively reduces subsequent build times but requires a ccache set up of about 50 GB.
+# Setting to use ccache (compiler cache) with the build. Massively reduces subsequent build times but requires a ccache set up
+# of at least 50 GB. 100 GB or more will really help when compiling with several different toolchains.
 # Comment out to disable if you don't have ccache set up.
 export USE_CCACHE=1
 
