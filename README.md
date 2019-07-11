@@ -2,10 +2,13 @@
 
 This repository contains modified and cleaned up versions of the scripts and patches I used to build my updated experimental roms for i9300, found in the later pages of [this XDA forum thread](https://forum.xda-developers.com/galaxy-s3/orig-development/experimental-lineageos-14-1-i9300-t3696500). I've since stopped making those builds due to a lack of time and because I switched phones, so using these scripts and patches someone else might be able to continue making them.
 
+# Dependencies
+Building LineageOS has a set of dependencies that are required for building to succeed. Those dependencies are listed on [the LineageOS wiki here](https://wiki.lineageos.org/devices/i9300/build#build-lineageos-and-lineageos-recovery), but how you install them depends on your specific distro.
+
 To use these scripts and patches download all the files in the `android` directory and place them in `$HOME/android`. Then, assuming you've already installed and set-up all required dependencies for building LineageOS, follow these steps:
 
 # 1. Build the custom toolchains
-Following [this guide](https://github.com/GalaxyMaster2/i9300_ubertc) build your custom toolchains that you intend to use. Then, copy them to `$HOME/android/lineage_customstuff/ubertc`. The path to a given toolchain should look like this: `$HOME/android/lineage_customstuff/ubertc/arm-cortex_a9-linux-androideabi-7.x`.
+Following [this guide](https://github.com/GalaxyMaster2/i9300_ubertc) build your custom toolchains that you intend to use (if you want to use the stock toolchain then you can skip this step). Then, copy them to `$HOME/android/lineage_customstuff/ubertc`. The path to a given toolchain should look like this: `$HOME/android/lineage_customstuff/ubertc/arm-cortex_a9-linux-androideabi-7.x`.
 
 If you try to build with a toolchain which is not present in the aforementioned directory, the scripts will most likely fail in unexpected ways.
 
