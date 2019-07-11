@@ -50,6 +50,15 @@ export USE_CORTEX_A9
 export USE_KERNEL_TC
 export GCC_VER
 
+# First-time sync and breakfast
+if [ ! -f "$LINEAGE_DIR/build/envsetup.sh" ]; then
+	repo sync -j$(nproc) -c --force-sync
+fi
+if [ ! -f "$LINEAGE_DIR/hardware/samsung/Android.mk" ] || [ ! -f "$LINEAGE_DIR/kernel/samsung/smdk4412/Makefile" ]; then
+	source build/envsetup.sh
+	breakfast i9300
+fi
+
 # Init hwc manifest
 if [[ $USE_HWC == [yY] ]]; then
 	echo "using hwc patches"
@@ -71,7 +80,7 @@ rm -rf $LINEAGE_DIR/out
 rm -rf $LINEAGE_DIR/prebuilts/gcc/linux-x86/arm/*
 
 # Sync sources and reset git repos
-repo sync -j$(nproc) -c -d --force-sync
+repo sync -j$(nproc) -c --force-sync
 repo forall -c 'git reset --hard ; git clean -fdx'
 
 # Setup custom toolchain
